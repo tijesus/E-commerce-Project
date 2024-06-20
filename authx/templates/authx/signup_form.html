@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Signup</title>
+</head>
+<body>
+<form method="post">
+    {% csrf_token %}
+
+    {% for field in form %}
+    <label for="{{field.name_for_label}}">{{field.label}}</label>
+    <div>{{field}}</div>
+
+
+        {% for error in field.errors %}
+
+            <div style="color: red">{{ error }}</div>
+
+    {% endfor %}
+
+    {% endfor %}
+
+    {% for error in form.non_field_errors %}
+        <div style="color: red">{{error}}</div>
+    {% endfor %}
+    <input type="submit">
+    <p><a href="{% url 'authx:login' %}">Login</a></p>
+
+</form>
+</body>
+</html>
