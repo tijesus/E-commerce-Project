@@ -124,6 +124,7 @@ def _login(request: HttpRequest) -> HttpResponse:
         user = authenticate(request, email=email, password=password)
 
         # TODO when user is not active but tries to login
+        # TODO phone error..unique error
         if user and not user.is_active:
             response = generate_token(request, user.id)
             if response.status_code == 200:
