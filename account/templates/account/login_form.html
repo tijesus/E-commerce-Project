@@ -19,7 +19,9 @@
 
     {% endfor %}
     <button>Submit</button>
-    <p><a href="{% url 'authx:reset_password' %}">forgot password</a></p>
+    <p><a href="{% url 'account:reset_password' %}">forgot password</a></p>
+    <p><a href="{% url 'account:signup' %}">Signup</a></p>
+
 </form>
 </body>
 </html>

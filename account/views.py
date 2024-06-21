@@ -16,12 +16,13 @@ import jwt
 from config import settings
 from .models import User
 from .emails import verification_email_html, reset_password_email_html, successful_reset_email_html
+import uuid
 
 
 
-verification_url = "http://127.0.0.1:8000/auth/verify/{}/"
+verification_url = "http://127.0.0.1:8000/accounts/verify/{}/"
 
-password_reset_url = "http://127.0.0.1:8000/auth/create_new_password/{}/"
+password_reset_url = "http://127.0.0.1:8000/accounts/create_new_password/{}/"
 
 def send_email(user: User, text: str | None=None, url: str | None=None):
     """
@@ -31,7 +32,7 @@ def send_email(user: User, text: str | None=None, url: str | None=None):
 
     # Create the payload dictionary
     payload = {
-        "user_id": user.id,
+        "user_id": str(user.id),  # uuid object is not json serializable so convert to string
         "iss": int(timezone.now().timestamp()),
         "exp": exp_seconds,
     }
@@ -48,7 +49,7 @@ def send_email(user: User, text: str | None=None, url: str | None=None):
 
 
 def home(request):
-    return render(request, 'authx/home.html')
+    return render(request, 'account/home.html')
 
 def signup(request: HttpRequest) -> HttpResponse:
     """
@@ -62,12 +63,12 @@ def signup(request: HttpRequest) -> HttpResponse:
             user = form.save()
             response = send_email(user, verification_email_html, verification_url)
 
-            # if the email was sent successfully redirect to authx:verify_user
+            # if the email was sent successfully redirect to account:verify_user
             if response.status_code == 200:
-                return redirect("authx:verify_user")
+                return redirect("account:verify_user")
         else:
-            return render(request, 'authx/signup_form.html', {'form': form})
-    return render(request, 'authx/signup_form.html', {'form': form})
+            return render(request, 'account/signup_form.html', {'form': form})
+    return render(request, 'account/signup_form.html', {'form': form})
 
 def verify(request: HttpRequest, token: str) -> HttpResponse:
     """
@@ -79,32 +80,34 @@ def verify(request: HttpRequest, token: str) -> HttpResponse:
     """
     try:
         decoded = jwt.decode(token, settings.JWT_KEY, algorithms=['HS256'])
-        decoded_user = get_object_or_404(User, id=decoded['user_id'])
+        user_id = uuid.UUID(decoded["user_id"])   # convert id back to UUID instance
+        decoded_user = get_object_or_404(User, id=user_id)
 
         if not decoded_user.is_active:
             decoded_user.is_active = True
             decoded_user.save()
         else:
-            return render(request, 'authx/already_verified.html', )
+            return render(request, 'account/already_verified.html', )
     # expired token
     except jwt.ExpiredSignatureError:
         decoded = jwt.decode(token, settings.JWT_KEY, algorithms=['HS256'], options={"verify_exp": False})
 
-        return render(request, "authx/generate_token.html", {"uid": decoded['user_id']})
+        return render(request, "account/generate_token.html", {"uid": decoded['user_id']})
     # invalid token
     except jwt.InvalidTokenError as e:
         return HttpResponse("Permission Denied", status=403)
 
-    return redirect("authx:login")
+    return redirect("account:login")
 
 # TODO this is a REST API
-def generate_token(request: HttpRequest, pk: int) -> JsonResponse:
+def generate_token(request: HttpRequest, pk: str) -> JsonResponse:
     """
     if `from` in request.GET, creates new token and sends email
     for password creation
     else, creates new token and sends mail for account verification
     """
-    user = get_object_or_404(User, id=pk)
+    user_id = uuid.UUID(pk)
+    user = get_object_or_404(User, id=user_id)
     if request.GET.get('from') == "create_new_password":
         response = send_email(user, reset_password_email_html, password_reset_url)
     else:
@@ -128,10 +131,10 @@ def _login(request: HttpRequest) -> HttpResponse:
         if user and not user.is_active:
             response = generate_token(request, user.id)
             if response.status_code == 200:
-                return HttpResponse(render_to_string("authx/verify_user.html", {}))
+                return HttpResponse(render_to_string("account/verify_user.html", {}))
             else:
                 messages.error(request, "Something went wrong, try again later")
-                return render(request, 'authx/login_form.html', {'form': form})
+                return render(request, 'account/login_form.html', {'form': form})
 
         if user is not None:
             login(request, user)  # login is aliased to _login
@@ -140,11 +143,11 @@ def _login(request: HttpRequest) -> HttpResponse:
             # if the user is coming from a login protected view
             if request.GET.get('next', None):
                 return redirect(request.GET.get('next'))
-            return redirect('authx:home')
+            return redirect('account:home')
         else:
             messages.warning(request, f"Invalid email or password")
 
-    return render(request, 'authx/login_form.html', {'form': form})
+    return render(request, 'account/login_form.html', {'form': form})
 
 
 def _logout(request: HttpRequest) -> HttpResponse:
@@ -154,7 +157,7 @@ def _logout(request: HttpRequest) -> HttpResponse:
     if not request.user.is_anonymous:
         logout(request)
         messages.success(request, f"You have been logged out")
-    return redirect("authx:home")
+    return redirect("account:home")
 
 
 def reset_password(request: HttpRequest) -> HttpResponse:
@@ -175,7 +178,7 @@ def reset_password(request: HttpRequest) -> HttpResponse:
 
 
     # TODO use javascript to take away the submit button
-    return render(request, 'authx/password_reset_form.html', {'form': form})
+    return render(request, 'account/password_reset_form.html', {'form': form})
 
 def create_new_password(request, token) -> HttpResponse:
     """
@@ -195,13 +198,13 @@ def create_new_password(request, token) -> HttpResponse:
                 messages.success(request, f"Your password has been changed successfully")
                 send_email(decoded_user, successful_reset_email_html)
                 logout(request)  # clear user's current session
-                return redirect("authx:login")
-        return render(request, 'authx/create_new_password_form.html', {'form': form})
+                return redirect("account:login")
+        return render(request, 'account/create_new_password_form.html', {'form': form})
 
     except jwt.ExpiredSignatureError:
         decoded = jwt.decode(token, settings.JWT_KEY, algorithms=['HS256'], options={"verify_exp": False})
         return render(request,
-                      "authx/generate_token.html",
+                      "account/generate_token.html",
                       {"uid": decoded['user_id'], "from": "create_new_password"})
     except jwt.InvalidTokenError as e:
         return HttpResponse("Permission Denied", status=403)

@@ -2,6 +2,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
 from django.contrib.auth.models import BaseUserManager
+from uuid import uuid4
 
 class CustomUserManager(BaseUserManager):
     """
@@ -45,12 +46,13 @@ class User(AbstractUser):
     date_joined = None
     REQUIRED_FIELDS = ["first_name", "last_name", "phone"]
 
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     email = models.EmailField(unique=True, error_messages={
         "unique": "A user with that email already exists.",
     })
     updated_at = models.DateTimeField(auto_now=True)
-    phone = models.CharField(max_length=10, unique=True, error_messages={
+    phone = models.CharField(max_length=11, unique=True, error_messages={
         "unique": "A user with that phone already exists.",
     })
     is_active = models.BooleanField(default=False)
@@ -68,3 +70,39 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.get_full_name()
+
+
+class Address(models.Model):
+    """
+    Address model.
+    """
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
+    user = models.OneToOneField('User', on_delete=models.CASCADE)
+    city = models.CharField(max_length=100)
+    postal_code = models.CharField(max_length=20)
+    state = models.CharField(max_length=100)
+    address = models.CharField(max_length=255)
+    landmark = models.CharField(max_length=255,
+                                blank=True,
+                                null=True,
+                                help_text="Optional landmark near the address")
+    description = models.TextField(blank=True,
+                                   null=True,
+                                   help_text="Additional description or notes about the address")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.address
+
+    def has_landmark(self):
+        """
+        Checks if the address has a landmark
+        """
+        return True if self.landmark else False
+
+    def has_description(self):
+        """
+        Checks if the address has a description
+        """
+        return True if self.description else False

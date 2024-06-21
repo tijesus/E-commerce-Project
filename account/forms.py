@@ -17,11 +17,14 @@ name_regex = RegexValidator(
 )
 
 phone_regex = RegexValidator(
-        r'^\d{10}$',
-        message="Phone number must contain 10 numbers",
+        r'^\d{11}$',
+        message="Phone number must contain 11 digits",
         code="Invalid_phone"
         )
 class CustomUserCreationForm(forms.ModelForm):
+    """
+    User creation form
+    """
     first_name = forms.CharField(label='First Name',
                                  widget=forms.TextInput,
                                  validators=[name_regex],
@@ -32,8 +35,8 @@ class CustomUserCreationForm(forms.ModelForm):
                                 validators=[name_regex],
                                 max_length=150
                                 )
-    phone = forms.CharField(max_length=10,
-                            widget=forms.TextInput(attrs={'placeholder': '0123456789'}),
+    phone = forms.CharField(max_length=11,
+                            widget=forms.TextInput(attrs={'placeholder': '01234567899'}),
                             validators=[phone_regex],
                             label='Phone Number')
     password1 = forms.CharField(label='Password',
@@ -49,14 +52,21 @@ class CustomUserCreationForm(forms.ModelForm):
         model = User
         fields = ("email",)
 
-    def clean_password2(self):
+    def clean_password2(self) -> str:
         password1 = self.cleaned_data.get("password1")
         password2 = self.cleaned_data.get("password2")
         if password1 and password2 and password1 != password2:
             raise forms.ValidationError("Passwords don't match")
         return password2
 
-    def save(self, commit=True):
+
+    def clean_first_name(self) -> str:
+        return str(self.cleaned_data.get("first_name")).capitalize()
+
+    def clean_last_name(self) -> str:
+        return str(self.cleaned_data.get("last_name")).capitalize()
+
+    def save(self, commit=True) -> User:
         user = User(
             first_name=self.cleaned_data['first_name'],
             last_name=self.cleaned_data['last_name'],
@@ -95,7 +105,7 @@ class CreateNewPasswordForm(forms.Form):
                                 validators=[password_regex],
                                 max_length=128)
 
-    def clean_password2(self):
+    def clean_password2(self) -> str:
         """
         check if password1 == password2
         """

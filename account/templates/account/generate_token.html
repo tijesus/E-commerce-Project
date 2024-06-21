@@ -7,7 +7,8 @@
 <body>
     <p>Token expired</p>
     <p>Generate new token</p>
-    <button class="generate_token" onclick="sendRequest('http://127.0.0.1:8000/auth/generate_token/{{uid}}?from={{from}}')">Generate Token</button>
+    <!---change the url in production--->
+    <button class="generate_token" onclick="sendRequest('http://127.0.0.1:8000/accounts/generate_token/{{uid}}?from={{from}}')">Generate Token</button>
 
     <script>
         function sendRequest(url) {

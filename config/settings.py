@@ -46,12 +46,17 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # my apps
-    "authx.apps.AuthxConfig",
+    "account.apps.AuthxConfig",
+    "store.apps.StoreConfig",
+
+    # third party
+    "corsheaders"
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -131,10 +136,17 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-AUTH_USER_MODEL = 'authx.User'
+AUTH_USER_MODEL = 'account.User'
 
 JWT_KEY = os.environ.get('JWT_KEY')
 MAILGUN_API_KEY = os.environ.get('MAILGUN_API_KEY')
 
-LOGIN_URL = "authx:login"
-# LOGOUT_REDIRECT_URL = "authx:home"
+LOGIN_URL = "account:login"
+# LOGOUT_REDIRECT_URL = "account:home"
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+]
+
+

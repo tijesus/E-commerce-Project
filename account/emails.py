@@ -1,3 +1,12 @@
+"""
+contains html mails as string
+
+for verification mail
+    password_reset mail
+    sucessful reset mail
+"""
+
+
 verification_email_html = """
 <!DOCTYPE html>
 <html>
@@ -60,7 +69,6 @@ verification_email_html = """
         <div class="footer">
             <p>If you didn't create an account, please ignore this email.</p>
             <p>For support, contact us at <a href="mailto:praisechinonso21@gmail.com">praisechinonso21@gmail.com</a></p>
-
             <p>&copy; 2024 Dalle Stores. All rights reserved.</p>
             
         </div>
@@ -129,9 +137,9 @@ reset_password_email_html = """
         </div>
         <div class="footer">
             <p>If you didn't request a password reset, please ignore this email.</p>
-            <p>For support, contact us at <a href="mailto:praisechinonso21@gmail.com">praisechinonso21@gmail.com</a></p>
-
             <p>&copy; 2024 Dalle Stores. All rights reserved.</p>
+            <p>For support, contact us at <a href="mailto:praisechinonso21@gmail.com">praisechinonso21@gmail.com</a></p>
+            
         </div>
     </div>
 </body>
