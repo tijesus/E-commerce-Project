@@ -1,0 +1,29 @@
+
+
+
+
+<div id="reviews" hx-swap-oob="true">
+{% if product.has_reviews %}
+    <h4 @click="toggle()" x-text="open ? close : show" class="review__title"></h4>
+    <section class="reviews" x-show="open" x-transition x-cloak>
+        
+        <section class="reviews" >
+        {% for review in product.reviews.all %}
+            <div class="single__review">
+                <p class="review__username"><b>{{ review.user.get_full_name }}</b> <span class="review_date">{{ review.created_at }}</span></p>
+                <p>{{ review.review }}</p>
+            </div>
+        {% endfor %}
+        </section>
+        <!-- <nav x-show="open" class="review__nav" x-transition x-cloak>
+            <button type="button">previous</button>
+            <button>next</button>
+        </nav> -->
+    </section>
+{% endif %}
+</div>
+
+<div id="review_form" hx-swap-oob="true">
+</div>
+
+<span id="total_reviews" hx-swap-oob="true">{{ product.total_reviews }} reviews</span>

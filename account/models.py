@@ -1,8 +1,23 @@
+"""
+Classes: CustomUserManager()
+         User()
+         Address()
+"""
+
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models.query import QuerySet
 from django.contrib.auth.models import BaseUserManager
-from uuid import uuid4
+from uuid import uuid4, UUID
+
+
+
+phone_regex = RegexValidator(
+        r'^0\d{10}$',
+        message="Enter a valid Nigerian number",
+        code="Invalid_phone"
+        )
 
 class CustomUserManager(BaseUserManager):
     """
@@ -48,13 +63,9 @@ class User(AbstractUser):
 
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    email = models.EmailField(unique=True, error_messages={
-        "unique": "A user with that email already exists.",
-    })
+    email = models.EmailField(unique=True)
     updated_at = models.DateTimeField(auto_now=True)
-    phone = models.CharField(max_length=11, unique=True, error_messages={
-        "unique": "A user with that phone already exists.",
-    })
+    phone = models.CharField(max_length=11, unique=True, validators=[phone_regex])
     is_active = models.BooleanField(default=False)
     password = models.CharField(max_length=128)
 
@@ -65,11 +76,34 @@ class User(AbstractUser):
         Overrides the default save method.
         """
         self.email = self.email.lower()  # Ensure email is saved in lowercase
-        self.phone = '0' + self.phone if len(self.phone) == 10 else self.phone
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.get_full_name()
+
+    def get_cart_items(self) ->QuerySet:
+        """
+        gets all the items in a user's cart
+        """
+        ...
+    def get_orders(self) -> QuerySet:
+        """
+        gets all the orders a user has made
+        """
+        ...
+
+    def orderedAndDeliverd(self, product_id: UUID) -> bool:
+        """
+        checks if a user has ordered a particular product
+        and the product has been delivered
+        """
+        ...
+
+    def has_reviewed(self, product_id: UUID) -> bool:
+        ...
+
+
+
 
 
 class Address(models.Model):
@@ -77,9 +111,9 @@ class Address(models.Model):
     Address model.
     """
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
-    user = models.OneToOneField('User', on_delete=models.CASCADE)
+    user = models.OneToOneField('User', on_delete=models.CASCADE, related_name='address')
     city = models.CharField(max_length=100)
-    postal_code = models.CharField(max_length=20)
+    postal_code = models.CharField(max_length=10)
     state = models.CharField(max_length=100)
     address = models.CharField(max_length=255)
     landmark = models.CharField(max_length=255,

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+    {% include "searchbar.html" %}
+
+<section class="cart">
+    
+    <div class="cart__item">
+        <figure class="cart__image">
+            <img src="{% static 'images/shoe1.jpg' %}" alt="product photo" />
+            <figcaption class="offscreen">Name</figcaption>
+        </figure>
+        <div class="cart__text">
+            <p><b>Nike</b> Sb Dunk</p>
+            <p>Some trash description</p>
+            <p class="size">size: EU 40</p>
+            <p class="cart__product__price"><b>$800</b></p>
+            <p class="button__con">
+                <span class="cart__button">
+                    <span class="cart__add">
+                        <i class="fa-solid fa-plus"></i>
+                    </span>
+                    <span class="cart__amount">1</span>
+                    <span class="cart__subtract">
+                        <i class="fa-solid fa-minus"></i>
+                    </span>
+                </span>
+                <i class="fa-solid fa-trash"></i>
+            </p>
+        </div>
+    </div>
+    
+    
+    <p class="checkout"><button class="checkout__btn">Checkout <span>$20,000</span></button></p>
+
+</section>
+
+{% endblock content %}

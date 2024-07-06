@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>verified</title>
-</head>
-<body>
-<p>You are already verified</p>
-<a href="{% url 'account:login' %}">login</a>
-</body>
-</html>
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="already_verified">
+    <p>You are already verified</p>
+    <p><a href="{% url 'account:login' %}">login</a></p>
+</div>
+
+{% endblock content %}

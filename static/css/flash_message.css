@@ -1,0 +1,33 @@
+#flash-messages {
+    position: fixed;
+    width: fit-content;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1;
+}
+
+.alert {
+    padding-block: 1.5rem;
+    padding-inline: 2rem;
+    border-radius: 15px;
+}
+
+.alert-success {
+    background-color: #9cf19c;
+}
+.alert-error {
+    background-color: #e29d9d;
+}
+.alert-info {
+    background-color: #d4d490;
+}
+
+.alert-warning {
+    background-color: #d9c397;
+}
+
+.close__message {
+    position: absolute;
+    top: 7px;
+    right: 7px;
+}

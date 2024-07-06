@@ -1,14 +1,13 @@
 from django.urls import path
-
-# TEST
-from django.http import HttpResponse
-
-def index(request):
-    return HttpResponse("Hello, world. You're at the store index.")
-
+from . import views
 
 app_name = 'store'
 
 urlpatterns = [
-    path('', index, name='index'),
+    path('products/', views.ProductListView.as_view(), name='product-list'),
+    path('products/<uuid:pk>/', views.ProductDetailView.as_view(), name='product-detail'),
+    path('products/<uuid:product_id>/add_to_cart/', views.AddToCartView.as_view(), name='add-to-cart'),
+    path('products/<uuid:product_id>/review/', views.ReviewCreateView.as_view(), name='review'),
+    path('products/<uuid:product_id>/toggle_like/', views.ToggleLikeView.as_view(), name='toggle-like'),
+    path('products/<uuid:product_id>/toggle_dislike/', views.ToggleDislikeView.as_view(), name='toggle-dislike'),
 ]

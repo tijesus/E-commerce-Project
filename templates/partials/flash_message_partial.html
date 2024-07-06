@@ -1,0 +1,11 @@
+
+<div id="flash-messages" hx-swap-oob="true">
+    {% if messages %}
+        {% for message in messages %}
+            <i class="fa-solid fa-xmark close__message"></i>
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+</div>

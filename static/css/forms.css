@@ -1,0 +1,64 @@
+.form__wrapper {
+    width: 100%;
+    max-width: 800px;
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+
+
+}
+.form {
+    width: 80%;
+    margin-inline: auto;
+    /*margin-top: 4rem;*/
+
+}
+
+.field__label {
+    margin-bottom: 0.5rem;
+    display: block;
+
+}
+
+.form__field {
+    width: 100%;
+    padding: .5rem;
+    border-radius: .5rem;
+    outline: none;
+    border: none;
+    margin-bottom: .5rem;
+    font-family: "Open Sans", sans-serif;
+}
+
+.form__field::placeholder {
+    font-style: italic;
+}
+
+.form ul{
+    margin-bottom: .5rem;
+    font-size: .8rem;
+}
+
+.form__button {
+    margin-block: .5rem;
+    display: inline-block;
+    padding-inline: 1rem;
+    padding-block: .5rem;
+    background-color: var(--SECONDARY-COLOR);
+    border-radius: 2rem;
+    font-size: 1.1rem;
+    color: white;
+    outline: 5px solid transparent;
+    cursor: pointer;
+}
+.form__button:hover, .form__button:focus {
+    outline-color: var(--TETIARY-COLOR);
+}
+
+.login__form {
+    margin-top: 20vh;
+}
+
+.signup__form {
+    margin-top: 3rem;
+}

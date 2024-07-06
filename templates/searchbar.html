@@ -1,0 +1,6 @@
+
+
+    <form hx-get="{% url 'store:product-list' %}" hx-target=".main__content" hx-push-url="true" class="search-bar">
+        <input type="search" name="q" placeholder="Search...." value="{{ search_query }}">
+        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+    </form>

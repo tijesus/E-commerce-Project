@@ -1,0 +1,63 @@
+{% load static %}
+
+<header class="header" x-data="dropdown" >
+    <h1 class="header__logo">Dale Stores</h1>
+    <i class="fa-solid fa-bars menu--open" @click="toggleMenu()"></i>
+    <ul class="menu">
+        <i class="fa-solid fa-xmark menu--close" @click="toggleMenu()"></i>
+        <li class="menu__link menu__link--active">
+            <p><i class="fa-solid fa-house nav-icon"></i><a href="{% url 'store:product-list' %}"  hx-swap='none' hx-get="{% url 'store:product-list' %}?to=home" @click="toggleMenu()" hx-push-url="true">Home</a></p>
+        </li>
+        <li class="menu__link">
+            <p><i class="fa-solid fa-shop nav-icon"></i><a href="{% url 'store:product-list' %}"  hx-swap='none' hx-get="{% url 'store:product-list' %}?to=home" @click="toggleMenu()" hx-push-url="true">Shop</a></p>
+        </li>
+        <li class="menu__link category--list">
+            <p><i class="fa-solid fa-person nav-icon"></i> <span>Men</span></p>
+            <ul class="menu__sublink hidden menu__sublink--first">
+                  <li>
+                    <a href="{% url 'store:product-list' %}?category=shoes&gender=male" hx-get="{% url 'store:product-list' %}?category=shoes&gender=male" hx-target=".main__content" hx-push-url="true">Shoes</a>
+                </li>
+                <li>
+                    <a href="{% url 'store:product-list' %}?category=clothes&gender=male" hx-get="{% url 'store:product-list' %}?category=clothes&gender=male" hx-target=".main__content" hx-push-url="true">Clothes</a>
+                </li>
+                <li>
+                    <a href="{% url 'store:product-list' %}?category=bags&gender=male" hx-get="{% url 'store:product-list' %}?category=bags&gender=male" hx-target=".main__content" hx-push-url="true">Bags</a>
+
+                </li>
+                <li>
+                    <a href="{% url 'store:product-list' %}?category=accessories&gender=male" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=accessories&gender=male" hx-push-url="true">Accessories</a>
+
+                </li>
+            </ul>
+        </li>
+        <li class="menu__link category--list">
+            <p><i class="fa-solid fa-person-dress nav-icon"></i><span>Women</span></p>
+            <ul class="menu__sublink menu__sublink--second hidden">
+                <li>
+                    <a href="{% url 'store:product-list' %}?category=shoes&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=shoes&gender=female" hx-push-url="true">Shoes</a>
+                </li>
+                <li>
+                    <a href="{% url 'store:product-list' %}?category=clothes&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=clothes&gender=female" hx-push-url="true">Clothes</a>
+                </li>
+                <li>
+                    <a href="{% url 'store:product-list' %}?category=bags&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=bags&gender=female" hx-push-url="true">Bags</a>
+
+                </li>
+                <li>
+                    <a href="{% url 'store:product-list' %}?category=accessories&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=accessories&gender=female" hx-push-url="true">Accessories</a>
+
+                </li>
+            </ul>
+        </li>
+        <li class="menu__link">
+            <p><i class="fa-solid fa-cart-shopping nav-icon"></i><a @click="toggleMenu()" href="">Cart</a></p>
+        </li>
+        <li class="menu__link">
+            {% if request.user.is_authenticated %}
+            <p><i class="fa-solid fa-right-to-bracket nav-icon"></i> <a href="{% url 'account:logout' %}">Logout</a></p>
+            {% else %}
+            <p><i class="fa-solid fa-right-to-bracket nav-icon"></i> <a href="{% url 'account:login' %}">Login</a></p>
+            {% endif %}
+        </li>
+    </ul>
+</header>

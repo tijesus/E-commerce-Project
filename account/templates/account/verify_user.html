@@ -1,11 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Verification</title>
-</head>
-<body>
-    <p>A verification mail has been sent to your account. Check your spam</p>
-    <a href="{% url 'account:login' %}">login</a>
-</body>
-</html>
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<div class="verify__user">
+   <p>A verification mail has been sent to your account. Check your spam</p>
+    <p><a href="{% url 'account:login' %}">login</a></p>
+</div>
+
+{% endblock content %}

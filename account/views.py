@@ -11,12 +11,16 @@ from .forms import (
     CustomUserCreationForm,
     LoginForm,
     PasswordResetForm,
-    CreateNewPasswordForm)
+    CreateNewPasswordForm,
+    AddressForm, UserChangeForm)
 import jwt
 from config import settings
 from .models import User
 from .emails import verification_email_html, reset_password_email_html, successful_reset_email_html
 import uuid
+from django.views.generic import CreateView, UpdateView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse_lazy
 
 
 
@@ -28,7 +32,7 @@ def send_email(user: User, text: str | None=None, url: str | None=None):
     """
     Sends emails to users.
     """
-    exp_seconds = int((timezone.now() + timedelta(minutes=5)).timestamp())
+    exp_seconds = int((timezone.now() + timedelta(minutes=2)).timestamp())
 
     # Create the payload dictionary
     payload = {
@@ -48,8 +52,7 @@ def send_email(user: User, text: str | None=None, url: str | None=None):
         timeout=120)
 
 
-def home(request):
-    return render(request, 'account/home.html')
+
 
 def signup(request: HttpRequest) -> HttpResponse:
     """
@@ -86,6 +89,7 @@ def verify(request: HttpRequest, token: str) -> HttpResponse:
         if not decoded_user.is_active:
             decoded_user.is_active = True
             decoded_user.save()
+            return redirect("account:address")
         else:
             return render(request, 'account/already_verified.html', )
     # expired token
@@ -120,16 +124,20 @@ def _login(request: HttpRequest) -> HttpResponse:
     GET: return a login page
     POST: logs a user in using the credentials from the form
     """
+
     form = LoginForm(request.POST or None)
     if request.method == 'POST':
         email = request.POST['email']
         password = request.POST['password']
+        
+        try:
+            _user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            _user = None
         user = authenticate(request, email=email, password=password)
 
-        # TODO when user is not active but tries to login
-        # TODO phone error..unique error
-        if user and not user.is_active:
-            response = generate_token(request, user.id)
+        if _user and not _user.is_active:
+            response = generate_token(request, str(_user.id))
             if response.status_code == 200:
                 return HttpResponse(render_to_string("account/verify_user.html", {}))
             else:
@@ -137,13 +145,13 @@ def _login(request: HttpRequest) -> HttpResponse:
                 return render(request, 'account/login_form.html', {'form': form})
 
         if user is not None:
-            login(request, user)  # login is aliased to _login
+            login(request, user)
             messages.success(request, f"Welcome {user.get_full_name()}")
 
             # if the user is coming from a login protected view
             if request.GET.get('next', None):
                 return redirect(request.GET.get('next'))
-            return redirect('account:home')
+            return redirect('store:product-list')
         else:
             messages.warning(request, f"Invalid email or password")
 
@@ -157,32 +165,47 @@ def _logout(request: HttpRequest) -> HttpResponse:
     if not request.user.is_anonymous:
         logout(request)
         messages.success(request, f"You have been logged out")
-    return redirect("account:home")
+    return redirect("store:product-list")
 
 
 def reset_password(request: HttpRequest) -> HttpResponse:
     """
-    gets the user's email and sends a link to reset their password
+    GET: returns a form that gets the user's email
+    POST: checks if the email is linked to an account and sends a reset link to that account
+          raises a 404 error if the email is not linked to any account
     """
     form = PasswordResetForm(request.POST or None)
     if request.method == 'POST':
         email = request.POST['email']
-        user = get_object_or_404(User, email=email)
+        try:
+            user = get_object_or_404(User, email=email)
+            response = send_email(user, reset_password_email_html, password_reset_url)
 
-        response = send_email(user, reset_password_email_html, password_reset_url)
-
-        if response.status_code == 200:
-            messages.success(request, f"sent successfully to {email}")
-        else:
-            messages.error(request, f"Something went wrong. Try again later")
-
-
-    # TODO use javascript to take away the submit button
+            if response.status_code == 200:
+                messages.success(request, f"sent successfully to {email}")
+                # TODO use javascript to take away the submit button
+            else:
+                messages.error(request, f"Something went wrong. Try again later")
+        except User.DoesNotExist:
+            messages.error(request, f"{email} is not linked to any account")
+    
     return render(request, 'account/password_reset_form.html', {'form': form})
 
 def create_new_password(request, token) -> HttpResponse:
     """
-    verify the token and create a new password
+    A user gets to this view using the reset link sent to their account
+
+    GET: returns a form that takes two passwords.
+    POST: It gets a token from GET and ensures the token is valid(not expired and contains the user id).
+          It gets the passwords from POST and ensures that both passwords match.
+          If both passwords match and the token is valid, it sets a new password for the user
+          and then sends an email to alert the user that their password is changed.
+          It then clears the user's session and redirects the user to the login page
+
+    if the token is expired:
+        returns "generate_token.html" so the user can generate a new token
+    if the user_id is invalid:
+        return permission denied
     """
 
     try:
@@ -192,7 +215,7 @@ def create_new_password(request, token) -> HttpResponse:
         if request.method == 'POST':
             if form.is_valid():
                 decoded_user.set_password(form.cleaned_data['password1'])
-                print(form.cleaned_data['password1'])
+
                 decoded_user.save()
                 email = decoded_user.email
                 messages.success(request, f"Your password has been changed successfully")
@@ -208,3 +231,47 @@ def create_new_password(request, token) -> HttpResponse:
                       {"uid": decoded['user_id'], "from": "create_new_password"})
     except jwt.InvalidTokenError as e:
         return HttpResponse("Permission Denied", status=403)
+
+
+class CreateAddress(LoginRequiredMixin, CreateView):
+    form_class = AddressForm
+    context_object_name = 'form'
+    template_name = 'account/address_form.html'
+    success_url = reverse_lazy("store:product-list")
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        return super().form_valid(form)
+
+    def get(self, request, *args, **kwargs):
+        # if the user already has an address
+        # redirect them to updateView
+        try:
+            if request.user.address:
+                print("redirecting")
+                return redirect("account:update_address")
+        except User.address.RelatedObjectDoesNotExist:
+            pass
+        return super().get(request, *args, **kwargs)
+
+class UpdateAddress(LoginRequiredMixin, UpdateView):
+    form_class = AddressForm
+    context_object_name = 'form'
+    success_url = reverse_lazy("account:home")
+    template_name = 'account/address_form.html'
+
+    def get_object(self):
+        # redirect anyone who doesn't have an address to create one
+        if not self.request.user.address:
+            return redirect("account:address")
+        return self.request.user.address
+
+class UpdateUser(LoginRequiredMixin, UpdateView):
+    form_class = UserChangeForm
+    template_name = 'account/userUpdate_form.html'
+    success_url = reverse_lazy("account:home")
+    context_object_name = 'form'
+
+
+    def get_object(self):
+        return self.request.user

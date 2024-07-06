@@ -1,16 +1,18 @@
 {% extends "base.html" %}
-
+{% load static %}
 
 {% block content %}
 
-    <div class="form__wrapper login__form">
-        <form method="post" class="form">
+    <p style="font-weight: bold; text-align: center;">Enter your address</p>
+    <div class="form__wrapper signup__form">
+        <form action="" method="post" class="form">
             {% csrf_token %}
 
             {% for field in form %}
 
                 <label for="{{field.id_for_label}}" class='field__label'>{{field.label}}</label>
                 <div class="input__wrapper">{{field}}</div>
+                <p style="font-size: .8rem; font-style: italic">{{field.help_text}}</p>
 
                 <ul>
                     {% for error in field.errors %}
@@ -23,10 +25,7 @@
 
             {% endfor %}
 
-            <button type="submit" class="form__button">Login</button>
-
-            <p><a href="{% url 'account:reset_password' %}">Forgot Password</a></p>
-            <p><a href="{% url 'account:signup' %}">Signup</a></p>
+            <button type="submit" class="form__button">Save</button>
 
 
     </form>

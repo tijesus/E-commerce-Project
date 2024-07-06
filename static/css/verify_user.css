@@ -1,0 +1,12 @@
+.verify__user {
+    margin-top: 5rem;
+}
+
+.verify__user{
+    text-align: center;
+}
+
+.verify__user p {
+    font-size: 1.2rem;
+    font-weight: bold;
+}

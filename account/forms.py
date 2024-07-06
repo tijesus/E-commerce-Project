@@ -1,5 +1,16 @@
+"""
+Classes: CustomUserCreationForm()
+         LoginForm()
+         PasswordResetForm()
+         CreateNewPasswordForm()
+
+Validator_instances: password_regex
+                     phone_regex
+                     name_regex
+"""
+
 from django import forms
-from .models import User
+from .models import User, Address
 from django.core.validators import RegexValidator
 from django.core.exceptions import ValidationError
 
@@ -16,41 +27,43 @@ name_regex = RegexValidator(
     code="Invalid_name"
 )
 
-phone_regex = RegexValidator(
-        r'^\d{11}$',
-        message="Phone number must contain 11 digits",
-        code="Invalid_phone"
-        )
 class CustomUserCreationForm(forms.ModelForm):
     """
     User creation form
     """
     first_name = forms.CharField(label='First Name',
-                                 widget=forms.TextInput,
+                                 widget=forms.TextInput(attrs={"class": "form__field"}),
                                  validators=[name_regex],
-                                 max_length=150
+                                 max_length=150,
+                                 help_text='must be all letters'
                                  )
     last_name = forms.CharField(label='Last Name',
-                                widget=forms.TextInput,
+                                widget=forms.TextInput(attrs={"class": "form__field"}),
                                 validators=[name_regex],
-                                max_length=150
+                                max_length=150,
+                                help_text='must be all letters'
                                 )
-    phone = forms.CharField(max_length=11,
-                            widget=forms.TextInput(attrs={'placeholder': '01234567899'}),
-                            validators=[phone_regex],
-                            label='Phone Number')
     password1 = forms.CharField(label='Password',
-                                widget=forms.PasswordInput,
+                                widget=forms.PasswordInput(attrs={"class": "form__field"}),
                                 validators=[password_regex],
-                                max_length=128)
-    password2 = forms.CharField(label='Password confirmation',
-                                widget=forms.PasswordInput,
+                                max_length=128,
+                                help_text= 'password must contain at least 8 characters(a digit, an alphabet and a symbol)')
+    password2 = forms.CharField(label='Password Confirmation',
+                                widget=forms.PasswordInput(attrs={"class": "form__field"}),
                                 max_length=128
                                 )
 
     class Meta:
         model = User
-        fields = ("email",)
+        fields = ("email", "phone")
+        widgets = {
+            "phone": forms.TextInput(attrs={'placeholder': '01234567899', 'class': 'form__field'}),
+            "email": forms.EmailInput(attrs={'placeholder': 'johndoe@example.com', 'class': 'form__field'}),
+        }
+        labels = {
+            "phone": "Phone Number",
+            "email": "Email",
+        }
 
     def clean_password2(self) -> str:
         password1 = self.cleaned_data.get("password1")
@@ -83,9 +96,10 @@ class LoginForm(forms.Form):
     login form
     """
     email = forms.EmailField(label='Email',
-                             widget=forms.EmailInput(attrs={"placeholder": "doe@example.com"}),
+                             widget=forms.EmailInput(attrs={"placeholder": "doe@example.com",
+                                                            'class': 'form__field'}),
                              )
-    password = forms.CharField(label='Password', widget=forms.PasswordInput)
+    password = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={"class": "form__field"}),)
 
 class PasswordResetForm(LoginForm):
     """
@@ -116,3 +130,31 @@ class CreateNewPasswordForm(forms.Form):
             raise ValidationError("Passwords do not match", code="Invalid_password")
 
         return password2
+
+class AddressForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form__field'
+
+    def clean(self):
+        super().clean()
+        self.cleaned_data = {key: value.lower().capitalize() for key, value in self.cleaned_data.items()}
+        return self.cleaned_data
+
+    class Meta:
+        model = Address
+        exclude = ['user']
+
+
+class UserChangeForm(forms.ModelForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs['class'] = 'form__field'
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'phone']

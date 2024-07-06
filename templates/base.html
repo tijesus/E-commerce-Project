@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="A fashion store">
+    <meta name="Author" content="Praise Josiah and Gabriel Emmanuel">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://kit.fontawesome.com/a2a2a7fc76.js" crossorigin="anonymous"></script>
+    <link href="{% static 'css/index.css' %}" rel="stylesheet"/>
+    <link rel="stylesheet" href="{% static 'css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'css/already_verified.css' %}">
+    <link rel="stylesheet" href="{% static 'css/password__rest_form.css' %}">
+    <link rel="stylesheet" href="{% static 'css/generateToken.css' %}">
+    <link rel="stylesheet" href="{% static 'css/verify_user.css' %}">
+    <link rel="stylesheet" href="{% static 'css/flash_message.css' %}">
+    <script src="{% static 'js/htmx.min.js' %}"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <title>Dale Stores</title>
+</head>
+
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    {% include 'header.html' %}
+    {% include 'partials/flash_message_partial.html' %}
+
+    <main id="base">
+        {% block content %}
+
+        {% endblock content %}
+    </main>
+
+
+</body>
+<script src="{% static 'js/alpine_script.js' %}"></script>
+<script src="{% static 'js/header.js' %}"></script>
+<script src="{% static 'js/product_detail.js' %}"></script>
+<script src="{% static 'js/generateToken.js' %}"></script>
+<script src="{% static 'js/flash_message.js' %}"></script>
+</html>

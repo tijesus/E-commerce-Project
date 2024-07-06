@@ -1,0 +1,95 @@
+{% load static %}
+
+   {% include "searchbar.html" %}
+
+
+<section class="product__detail main__content"  x-data="dropdown">
+{# product images #}
+    <section class="images">
+        <div class="main__image__div">
+            <img class="main__image" src="{{ product.images.first.image.url }}" alt="shoe"  @click="toggleModal(); document.querySelector('.modal__image').src = $event.target.src"/>
+        </div>
+        <div class="other__images_div">
+            {% for image in product.images.all %}
+            <img class="other__image image_1" src="{{image.image.url}}" alt=""  @click="document.querySelector('.main__image').src=$el.src"/>
+            {% endfor %}
+
+        </div>
+    </section>
+
+{#  product details  #}
+    <section class="details">
+        <p><b>{{ product.brand }}</b> {{ product.name }}</p>
+        <p>{{ product.description }}</p>
+        <span id="total_reviews">{{ product.total_reviews }} review{{ product.total_reviews|pluralize }}</span>
+        <p class="card__description">
+            <span class="total_likes" id="total_likes">{{ total_likes }}</span> <i class="fa-regular fa-thumbs-up" hx-post="{% url 'store:toggle-like' product.id %}" hx-swap="none" hx-trigger="click"></i> <span id="total_dislikes" class="total_dislikes" >{{ total_dislikes }}</span>
+            <i class="fa-regular fa-thumbs-down" hx-post="{% url 'store:toggle-dislike' product.id %}" hx-swap="none" hx-trigger="click"></i>
+        </p>
+    </section>
+
+
+{#  product form  #}
+    <form hx-post="{% url 'store:add-to-cart' product.id %}" class="product__form" hx-swap="none">
+
+        <input type="hidden" name="product_id" value="{{ product.id }}">
+
+        <div>
+            <label for="cars" style="font-weight: bold;">size:</label>
+            <select id="size" name="size">
+                {% for size in product.sizes.all %}
+                <option value="{{ size.size }}">{{ size.size }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <button type="submit" class="btn">Add to cart</button>
+    </form>
+
+
+
+
+{% if request.user.is_authenticated and not user_has_reviewed %}
+{#  review form  #}
+<div id="review_form">
+    <h4 class="review__title" @click="toggleReviewForm()" >Write a review</h4>
+    <form x-show="openReviewForm" x-cloak x-transition class="review__form form" hx-post="{% url 'store:review' product.id %}" hx-trigger="submit" hx-target="#review_form" hx-swap="outerHTML">
+    {% csrf_token %}
+    <textarea name="review" id="review" placeholder="Write a review" required class="form__field"></textarea>
+    <button type="submit" class="btn">Submit</button>
+    </form>
+</div>
+{% endif %}
+
+
+
+{#  product review  #}
+<div id="reviews">
+{% if product.has_reviews %}
+    <h4 @click="toggle()" x-text="open ? close : show" class="review__title"></h4>
+    <section class="reviews" x-show="open" x-transition x-cloak>
+        
+        <section class="reviews" >
+        {% for review in product.reviews.all %}
+            <div class="single__review">
+                <p class="review__username"><b>{{ review.user.get_full_name }}</b> <span class="review_date">{{ review.created_at }}</span></p>
+                <p>{{ review.review }}</p>
+            </div>
+        {% endfor %}
+        </section>
+        <!-- <nav x-show="open" class="review__nav" x-transition x-cloak>
+            <button type="button">previous</button>
+            <button>next</button>
+        </nav> -->
+    </section>
+{% endif %}
+</div>
+
+{#  modal  #}
+    <figure class="modal__figure" x-cloak x-show="openModal" x-transition>
+        <i class="fa-solid fa-xmark modal__close" @click="toggleModal()"></i>
+    <img class="modal__image" src="" @click.outside="openModal ? toggleModal() : '' " alt="shoe">
+        <figcaption class="offscreen">Photo name</figcaption>
+    </figure>
+
+</section>
