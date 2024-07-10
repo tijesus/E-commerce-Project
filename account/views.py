@@ -269,7 +269,7 @@ class UpdateAddress(LoginRequiredMixin, UpdateView):
 class UpdateUser(LoginRequiredMixin, UpdateView):
     form_class = UserChangeForm
     template_name = 'account/userUpdate_form.html'
-    success_url = reverse_lazy("account:home")
+    success_url = reverse_lazy("store:product-list")
     context_object_name = 'form'
 
 

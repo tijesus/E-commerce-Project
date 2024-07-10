@@ -5,45 +5,6 @@
 {% block content %}
     {% include "searchbar.html" with search_query=search_query %}
 
-<section class="main__content product__list">
-{% for product in products %}
-    <article class="card" hx-trigger="click" hx-get="{% url 'store:product-detail' product.id %}" hx-target="#base" hx-push-url="true">
-{#        <figure class="card__image">#}
-            <img src="{{ product.images.first.image.url}}" alt="{{ product.name }}" />
-{#            <figcaption class="offscreen">{{ product.name }}/figcaption>#}
-{#        </figure>#}
-        <section class="card__text">
-            <p class="card__name">{{ product.name }}</p>
-            <p class="card__description">{{ product.description }}</p>
-            <p class="card__description">({{ product.order_items.count }}) sold</p>
-            <p class="card__description">{{ product.total_reviews }} review{{product.total_reviews|pluralize}}</p>
-            <p class="card__price"><span style="font-weight: bold">&#8358;</span>{{ product.unit_price }}</p>
-            
-        </section>
-    </article>
-{% endfor %}
-
-
-{# ============================PAGINATION======================================== #}
-{% if is_paginated %}
-<nav class="review__nav">
-     {% if page_obj.has_previous %}
-         <button type="button" hx-get="?page={{page_obj.previous_page_number}}"
-            hx-target=".product__list" hx-push-url="true">previous</button>
-     {% endif %}
-
-
-    {% if page_obj.has_next %}
-            <button type="button" hx-get="?page={{page_obj.next_page_number}}"
-            hx-target=".product__list" hx-push-url="true"
-            >next</button>
-{#                <a href="?page={{ products.next_page_number }}">next</a>#}
-{#                <a href="?page={{ products.paginator.num_pages }}">last &raquo;</a>#}
-    {% endif %}
-
-</nav>
-{% endif %}
-
-</section>
+{% include 'partials/product_list_partial.html' %}
 
 {% endblock %}

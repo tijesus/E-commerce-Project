@@ -1,0 +1,20 @@
+<p class="card__description" id="likes_section" hx-swap-oob="true">
+            <!-- <span class="total_likes" id="total_likes">{{ total_likes }}</span> <i class="fa-regular fa-thumbs-up" hx-post="{% url 'store:toggle-like' product.id %}" hx-swap="none" hx-trigger="click"></i> <span id="total_dislikes" class="total_dislikes" >{{ total_dislikes }}</span>
+            <i class="fa-regular fa-thumbs-down" hx-post="{% url 'store:toggle-dislike' product.id %}" hx-swap="none" hx-trigger="click"></i> -->
+            {% if has_liked %}
+            <span class="total_likes" id="total_likes">{{ total_likes }}</span> 
+            <svg hx-post="{% url 'store:toggle-like' product.id %}"  hx-trigger="click" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M23 10a2 2 0 0 0-2-2h-6.32l.96-4.57c.02-.1.03-.21.03-.32c0-.41-.17-.79-.44-1.06L14.17 1L7.59 7.58C7.22 7.95 7 8.45 7 9v10a2 2 0 0 0 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73zM1 21h4V9H1z"/></svg>
+            <span id="total_dislikes" class="total_dislikes" >{{ total_dislikes }}</span>
+            <svg hx-post="{% url 'store:toggle-dislike' product.id %}"  hx-trigger="click" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M19 15V3h4v12zM15 3a2 2 0 0 1 2 2v10c0 .55-.22 1.05-.59 1.41L9.83 23l-1.06-1.06c-.27-.27-.44-.64-.44-1.06l.03-.31l.95-4.57H3a2 2 0 0 1-2-2v-2c0-.26.05-.5.14-.73l3.02-7.05C4.46 3.5 5.17 3 6 3zm0 2H5.97L3 12v2h8.78l-1.13 5.32L15 14.97z"/></svg>
+            {% elif has_disliked %}
+            <span class="total_likes" id="total_likes">{{ total_likes }}</span> 
+            <svg hx-post="{% url 'store:toggle-like' product.id %}"  hx-trigger="click" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M5 9v12H1V9zm4 12a2 2 0 0 1-2-2V9c0-.55.22-1.05.59-1.41L14.17 1l1.06 1.06c.27.27.44.64.44 1.05l-.03.32L14.69 8H21a2 2 0 0 1 2 2v2c0 .26-.05.5-.14.73l-3.02 7.05C19.54 20.5 18.83 21 18 21zm0-2h9.03L21 12v-2h-8.79l1.13-5.32L9 9.03z"/></svg>
+            <span id="total_dislikes" class="total_dislikes" >{{ total_dislikes }}</span>
+            <svg hx-post="{% url 'store:toggle-dislike' product.id %}"  hx-trigger="click" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M19 15h4V3h-4m-4 0H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2a2 2 0 0 0 2 2h6.31l-.95 4.57c-.02.1-.03.2-.03.31c0 .42.17.79.44 1.06L9.83 23l6.58-6.59c.37-.36.59-.86.59-1.41V5a2 2 0 0 0-2-2"/></svg>
+            {% else %}
+            <span class="total_likes" id="total_likes">{{ total_likes }}</span>
+            <svg hx-post="{% url 'store:toggle-like' product.id %}"  hx-trigger="click" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M5 9v12H1V9zm4 12a2 2 0 0 1-2-2V9c0-.55.22-1.05.59-1.41L14.17 1l1.06 1.06c.27.27.44.64.44 1.05l-.03.32L14.69 8H21a2 2 0 0 1 2 2v2c0 .26-.05.5-.14.73l-3.02 7.05C19.54 20.5 18.83 21 18 21zm0-2h9.03L21 12v-2h-8.79l1.13-5.32L9 9.03z"/></svg>
+            <span id="total_dislikes" class="total_dislikes" >{{ total_dislikes }}</span>
+            <svg hx-post="{% url 'store:toggle-dislike' product.id %}"  hx-trigger="click" xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24"><path fill="currentColor" d="M19 15V3h4v12zM15 3a2 2 0 0 1 2 2v10c0 .55-.22 1.05-.59 1.41L9.83 23l-1.06-1.06c-.27-.27-.44-.64-.44-1.06l.03-.31l.95-4.57H3a2 2 0 0 1-2-2v-2c0-.26.05-.5.14-.73l3.02-7.05C4.46 3.5 5.17 3 6 3zm0 2H5.97L3 12v2h8.78l-1.13 5.32L15 14.97z"/></svg>
+            {% endif %}
+</p>

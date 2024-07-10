@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django import forms
 from .forms import ProductForm, CategoryForm, GenderForm
-from .models import Product, Size, Category, Gender, Order, OrderItem, CartItem, Product_Image, Review
+from .models import Product, Size, Category, Gender, Order, OrderItem, CartItem, Product_Image, Review, Like
 
 class SizeInlineFormSet(forms.BaseInlineFormSet):
     def clean(self):
@@ -78,4 +78,4 @@ admin.site.register(Category, CategoryAdmin)
 admin.site.register(Gender, GenderAdmin)
 admin.site.register(Size, SizeAdmin)
 admin.site.register(Product_Image, ProductImageAdmin)
-admin.site.register((Order, OrderItem, CartItem, Review))
+admin.site.register((Order, OrderItem, CartItem, Review, Like))

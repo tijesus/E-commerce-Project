@@ -115,6 +115,7 @@ button {
 
 .menu__sublink {
     margin-block: 1rem;
+    transition: display 150ms ease-in-out;
 }
 
 .menu__sublink > li {
@@ -359,6 +360,7 @@ div .main__image {
 }
 
 .review__nav {
+    margin-top: 1rem;
     display: flex;
     justify-content: space-between;
 }

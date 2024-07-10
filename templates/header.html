@@ -11,40 +11,40 @@
         <li class="menu__link">
             <p><i class="fa-solid fa-shop nav-icon"></i><a href="{% url 'store:product-list' %}"  hx-swap='none' hx-get="{% url 'store:product-list' %}?to=home" @click="toggleMenu()" hx-push-url="true">Shop</a></p>
         </li>
-        <li class="menu__link category--list">
+        <li class="menu__link category--list" @click="document.querySelector('.menu__sublink--first').classList.toggle('hidden')">
             <p><i class="fa-solid fa-person nav-icon"></i> <span>Men</span></p>
             <ul class="menu__sublink hidden menu__sublink--first">
                   <li>
-                    <a href="{% url 'store:product-list' %}?category=shoes&gender=male" hx-get="{% url 'store:product-list' %}?category=shoes&gender=male" hx-target=".main__content" hx-push-url="true">Shoes</a>
+                    <a href="{% url 'store:product-list' %}?category=shoes&gender=male" hx-get="{% url 'store:product-list' %}?category=shoes&gender=male" hx-target=".main__content" hx-push-url="true" @click="toggleMenu()">Shoes</a>
                 </li>
                 <li>
-                    <a href="{% url 'store:product-list' %}?category=clothes&gender=male" hx-get="{% url 'store:product-list' %}?category=clothes&gender=male" hx-target=".main__content" hx-push-url="true">Clothes</a>
+                    <a href="{% url 'store:product-list' %}?category=clothes&gender=male" hx-get="{% url 'store:product-list' %}?category=clothes&gender=male" hx-target=".main__content" hx-push-url="true" @click="toggleMenu()">Clothes</a>
                 </li>
                 <li>
-                    <a href="{% url 'store:product-list' %}?category=bags&gender=male" hx-get="{% url 'store:product-list' %}?category=bags&gender=male" hx-target=".main__content" hx-push-url="true">Bags</a>
+                    <a href="{% url 'store:product-list' %}?category=bags&gender=male" hx-get="{% url 'store:product-list' %}?category=bags&gender=male" hx-target=".main__content" hx-push-url="true" @click="toggleMenu()">Bags</a>
 
                 </li>
                 <li>
-                    <a href="{% url 'store:product-list' %}?category=accessories&gender=male" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=accessories&gender=male" hx-push-url="true">Accessories</a>
+                    <a href="{% url 'store:product-list' %}?category=accessories&gender=male" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=accessories&gender=male" hx-push-url="true" @click="toggleMenu()">Accessories</a>
 
                 </li>
             </ul>
         </li>
-        <li class="menu__link category--list">
+        <li class="menu__link category--list" @click="document.querySelector('.menu__sublink--first').classList.toggle('hidden')">
             <p><i class="fa-solid fa-person-dress nav-icon"></i><span>Women</span></p>
             <ul class="menu__sublink menu__sublink--second hidden">
                 <li>
-                    <a href="{% url 'store:product-list' %}?category=shoes&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=shoes&gender=female" hx-push-url="true">Shoes</a>
+                    <a href="{% url 'store:product-list' %}?category=shoes&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=shoes&gender=female" hx-push-url="true" @click="toggleMenu()">Shoes</a>
                 </li>
                 <li>
-                    <a href="{% url 'store:product-list' %}?category=clothes&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=clothes&gender=female" hx-push-url="true">Clothes</a>
+                    <a href="{% url 'store:product-list' %}?category=clothes&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=clothes&gender=female" hx-push-url="true" @click="toggleMenu()">Clothes</a>
                 </li>
                 <li>
-                    <a href="{% url 'store:product-list' %}?category=bags&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=bags&gender=female" hx-push-url="true">Bags</a>
+                    <a href="{% url 'store:product-list' %}?category=bags&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=bags&gender=female" hx-push-url="true" @click="toggleMenu()">Bags</a>
 
                 </li>
                 <li>
-                    <a href="{% url 'store:product-list' %}?category=accessories&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=accessories&gender=female" hx-push-url="true">Accessories</a>
+                    <a href="{% url 'store:product-list' %}?category=accessories&gender=female" hx-target=".main__content" hx-get="{% url 'store:product-list' %}?category=accessories&gender=female" hx-push-url="true" @click="toggleMenu()">Accessories</a>
 
                 </li>
             </ul>

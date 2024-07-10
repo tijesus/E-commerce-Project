@@ -61,7 +61,7 @@ class Product(models.Model):
     total_likes = models.PositiveIntegerField(default=0)
     total_dislikes = models.PositiveIntegerField(default=0)
     total_reviews = models.PositiveIntegerField(default=0)
-    unit_price = models.FloatField(validators=[MinValueValidator(1000.0)], default=1000.0)
+    unit_price = models.PositiveIntegerField(validators=[MinValueValidator(1000)], default=1000)
     is_deleted = models.BooleanField(default=False)
     brand = models.CharField(max_length=100, default="Generic")
     created_at = models.DateTimeField(auto_now_add=True)

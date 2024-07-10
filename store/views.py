@@ -78,7 +78,7 @@ class ProductDetailView(DetailView):
     success_url = reverse_lazy("product_list")  # Redirect URL for non-htmx requests (optional)
 
     def get_template_names(self):
-        if self.request.headers.get('HX-Request'):
+        if self.request.htmx:
             return ['partials/product_detail_partial.html']  # Template for htmx requests
         return ['product_detail.html']  # Template for non-htmx requests
 
@@ -89,6 +89,8 @@ class ProductDetailView(DetailView):
             context['user_has_reviewed'] = self.object.reviews.filter(user=self.request.user).exists()
         context['total_likes'] = self.object.likes.filter(like=True).count()
         context['total_dislikes'] = self.object.likes.filter(dislike=True).count()
+        context['has_liked'] = self.object.likes.filter(user=self.request.user, like=True).exists()
+        context['has_disliked'] = self.object.likes.filter(user=self.request.user, dislike=True).exists()
         print(context['total_likes'], context['total_dislikes'], '-------------------')
         return context
 
@@ -148,9 +150,12 @@ class ToggleLikeView(View):
             product.likes.create(user=request.user, like=True, dislike=None)
             
         context = {'total_likes': product.likes.filter(like=True).count(),
-                   'total_dislikes': product.likes.filter(dislike=True).count()}
+                   'total_dislikes': product.likes.filter(dislike=True).count(),
+                   'has_liked': product.likes.filter(user=request.user, like=True).exists(),
+                   'has_disliked': product.likes.filter(user=request.user, dislike=True).exists(),
+                   'product': product}
         print('Toggle like view called')
-        return render(request, 'partials/like_and_dislike_partial.html', context=context)
+        return render(request, 'partials/likes_partial.html', context=context)
 
 class ToggleDislikeView(View):
     def post(self, request, *args, **kwargs):
@@ -175,7 +180,10 @@ class ToggleDislikeView(View):
             product.likes.create(user=request.user, dislike=True, like=None)
             
         context = {'total_likes': product.likes.filter(like=True).count(),
-                   'total_dislikes': product.likes.filter(dislike=True).count()}
+                   'total_dislikes': product.likes.filter(dislike=True).count(),
+                   'has_liked': product.likes.filter(user=request.user, like=True).exists(),
+                   'has_disliked': product.likes.filter(user=request.user, dislike=True).exists(),
+                   'product': product}
         print("Toggle dislike view called")
-        return render(request, 'partials/like_and_dislike_partial.html', context=context)
+        return render(request, 'partials/likes_partial.html', context=context)
             
