@@ -2,15 +2,17 @@ const handle_flash_message = () => {
     const flash_message = document.querySelector(".alert");
     const close_message = document.querySelector(".close__message");
 
-    close_message.addEventListener("click", (e) => {
-    flash_message.remove()
-    e.target.remove()
-    })
-    setInterval(()=> {
-        flash_message.remove()
-        close_message.remove()
-    }, 4000)
+    if (flash_message) {
+        close_message.addEventListener("click", (e) => {
+            flash_message.remove()
+            e.target.remove()
+        })
+        setInterval(() => {
+            flash_message.remove()
+            close_message.remove()
+        }, 4000)
 
+    }
 }
 
 

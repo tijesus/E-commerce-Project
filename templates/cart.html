@@ -4,35 +4,59 @@
 {% block content %}
     {% include "searchbar.html" %}
 
-<section class="cart">
+<section class="cart main__content">
     
-    <div class="cart__item">
+    {% for item in cart_items %}
+
+        {% if item.cart_item.product.in_stock %}
+    <div class="cart__item" id="cart__item-{{item.cart_item.id}}">
         <figure class="cart__image">
-            <img src="{% static 'images/shoe1.jpg' %}" alt="product photo" />
-            <figcaption class="offscreen">Name</figcaption>
+            <img src="{{ item.image }}" alt="{{ item.cart_item.product.name }}" />
+            <figcaption class="offscreen">{{ item.cart_item.product.name }}</figcaption>
         </figure>
         <div class="cart__text">
-            <p><b>Nike</b> Sb Dunk</p>
-            <p>Some trash description</p>
-            <p class="size">size: EU 40</p>
-            <p class="cart__product__price"><b>$800</b></p>
+            <p><b>{{ item.cart_item.product.brand }}</b> {{ item.cart_item.product.name }}</p>
+            <p>{{ item.cart_item.product.description }}</p>
+            <p class="size">size: {{ item.cart_item.size }}</p>
+            <p class="cart__product__price" id="product_price-{{ item.cart_item.id }}"><b>&#8358; {{ item.cart_item.total_price }}</b></p>
             <p class="button__con">
                 <span class="cart__button">
-                    <span class="cart__add">
-                        <i class="fa-solid fa-plus"></i>
-                    </span>
-                    <span class="cart__amount">1</span>
-                    <span class="cart__subtract">
+                     <span class="cart__subtract" hx-trigger="click" hx-post="{% url 'store:decrease-cart-item' item.cart_item.id %}" hx-swap="none">
                         <i class="fa-solid fa-minus"></i>
                     </span>
+                    <span class="cart__amount" id="product_quantity-{{ item.cart_item.id }}">{{ item.cart_item.quantity }}</span>
+                    <span class="cart__add" hx-trigger="click" hx-post="{% url 'store:increase-cart-item' item.cart_item.id %}" hx-swap="none">
+                        <i class="fa-solid fa-plus"></i>
+                    </span>
+                   
                 </span>
-                <i class="fa-solid fa-trash"></i>
+                <i class="fa-solid fa-trash" hx-trigger="click" hx-delete="{% url 'store:delete-cart-item' item.cart_item.id %}"></i>
             </p>
         </div>
     </div>
+        {% else %}
+            <div class="cart__item" id="cart__item-{{item.cart_item.id}}">
+        <figure class="cart__image">
+            <img src="{{ item.image }}" alt="{{ item.cart_item.product.name }}" />
+            <figcaption class="offscreen">{{ item.cart_item.product.name }}</figcaption>
+        </figure>
+        <div class="cart__text">
+            <p><b>{{ item.cart_item.product.brand }}</b> {{ item.cart_item.product.name }}</p>
+            <p>{{ item.cart_item.product.description }}</p>
+            <p class="size">size: {{ item.cart_item.size }}</p>
+            <p class="cart__product__price" id="product_price-{{ item.cart_item.id }}"><b>&#8358; {{ item.cart_item.total_price }}</b></p>
+            <p class="button__con">
+                <span>Out of stock</span>
+                <i class="fa-solid fa-trash" hx-trigger="click" hx-delete="{% url 'store:delete-cart-item' item.cart_item.id %}"></i>
+            </p>
+        </div>
+    </div>
+
+        {% endif %}
+    {% endfor %}
     
-    
-    <p class="checkout"><button class="checkout__btn">Checkout <span>$20,000</span></button></p>
+    <p class="checkout" hx-get="{%  url 'store:shipping-address' %}" hx-target=".main__content" hx-swap="innerHTML"><button class="checkout__btn">Checkout <span id="total_price">&#8358; {{ total_price }}</span></button></p>
+    <p><a hx-get="{%  url 'store:checkout' %}" hx-swap="none">Checkout <span id="total_price">&#8358; {{ total_price }}</span</a></p>
 
 </section>
 

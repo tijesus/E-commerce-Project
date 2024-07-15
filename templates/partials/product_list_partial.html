@@ -10,9 +10,13 @@
         <section class="card__text">
             <p class="card__name">{{ product.name }}</p>
             <p class="card__description">{{ product.description }}</p>
-            <p class="card__description">({{ product.order_items.count }}) sold</p>
+            {% if product.orders %}
+            <p class="card__description">{{ product.orders.count }} sold</p>
+            {% else %}
+                <p class="card__description">0 sold</p>
+            {% endif %}
             <p class="card__description">{{ product.total_reviews }} review{{product.total_reviews|pluralize}}</p>
-            <p class="card__price"><span style="font-weight: bold">&#8358;</span>{{ product.unit_price }}</p>
+            <p class="card__price"><span style="font-weight: bold">&#8358; </span>{{ product.unit_price }}</p>
             
         </section>
     </article>

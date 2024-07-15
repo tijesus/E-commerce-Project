@@ -30,7 +30,7 @@
                 </li>
             </ul>
         </li>
-        <li class="menu__link category--list" @click="document.querySelector('.menu__sublink--first').classList.toggle('hidden')">
+        <li class="menu__link category--list" @click="document.querySelector('.menu__sublink--second').classList.toggle('hidden')">
             <p><i class="fa-solid fa-person-dress nav-icon"></i><span>Women</span></p>
             <ul class="menu__sublink menu__sublink--second hidden">
                 <li>
@@ -50,14 +50,18 @@
             </ul>
         </li>
         <li class="menu__link">
-            <p><i class="fa-solid fa-cart-shopping nav-icon"></i><a @click="toggleMenu()" href="">Cart</a></p>
+            <p><i class="fa-solid fa-cart-shopping nav-icon"></i><a @click="toggleMenu()" href="{% url 'store:cart' %}">Cart</a></p>
+        </li>
+        <li class="menu__link">
+            <p><i class="fa-solid fa-house nav-icon"></i><a href="{% url 'store:order-list' %}"  hx-target=".main__content" hx-get="{% url 'store:order-list' %}?to=home" @click="toggleMenu()" hx-push-url="true">Orders</a></p>
         </li>
         <li class="menu__link">
             {% if request.user.is_authenticated %}
-            <p><i class="fa-solid fa-right-to-bracket nav-icon"></i> <a href="{% url 'account:logout' %}">Logout</a></p>
+            <p><i class="fa-solid fa-right-to-bracket nav-icon"></i> <a href="{% url 'account:logout' %}" @click="toggleMenu()">Logout</a></p>
             {% else %}
-            <p><i class="fa-solid fa-right-to-bracket nav-icon"></i> <a href="{% url 'account:login' %}">Login</a></p>
+            <p><i class="fa-solid fa-right-to-bracket nav-icon"></i> <a href="{% url 'account:login' %}" @click="toggleMenu()">Login</a></p>
             {% endif %}
         </li>
+
     </ul>
 </header>

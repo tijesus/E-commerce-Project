@@ -191,6 +191,9 @@ STATIC_URL = '/static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / "media"
 
+PAYSATCK_SECRETE_KEY = os.environ.get('PAYSTACK_SECRET_KEY')
+
+CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'https://www.dalle-stores.praiseafk.tech', 'https://dalle-stores.praiseafk.tech']
 
 if USE_S3:
     # AWS CREDENTIALS

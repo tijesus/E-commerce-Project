@@ -1,14 +1,17 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
 from django.http import Http404, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.utils.text import gettext_lazy as _
-from store.models import Product, CartItem, Review
+from store.models import Product, CartItem, Review, Order, OrderItem, Size
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from .paystack import initiate_transaction, verify_transaction
+from functools import reduce
 
 
 class ProductListView(ListView):
@@ -18,7 +21,7 @@ class ProductListView(ListView):
     paginate_by = 5
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().filter(inventory__gt=0)
 
         category = self.request.GET.get('category', None)
         gender = self.request.GET.get('gender', None)
@@ -84,14 +87,21 @@ class ProductDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Add any additional context variables here if needed
+        
+        context['user_has_reviewed'] = context['has_liked'] = context['has_disliked'] = context['user_has_bought'] = None
+
+        
         if self.request.user.is_authenticated:
             context['user_has_reviewed'] = self.object.reviews.filter(user=self.request.user).exists()
+            context['has_liked'] = self.object.likes.filter(user=self.request.user, like=True).exists()
+            context['has_disliked'] = self.object.likes.filter(user=self.request.user, dislike=True).exists()
+            context['user_has_bought'] = Order.objects.filter(user=self.request.user,
+                                                              payment_status__iexact="PAID",
+                                                              order_items__product=self.object).exists()
+            print(context['user_has_bought'])
         context['total_likes'] = self.object.likes.filter(like=True).count()
         context['total_dislikes'] = self.object.likes.filter(dislike=True).count()
-        context['has_liked'] = self.object.likes.filter(user=self.request.user, like=True).exists()
-        context['has_disliked'] = self.object.likes.filter(user=self.request.user, dislike=True).exists()
-        print(context['total_likes'], context['total_dislikes'], '-------------------')
+        
         return context
 
 class AddToCartView(View):
@@ -103,11 +113,24 @@ class AddToCartView(View):
             return response
         product_id = self.kwargs.get('product_id')
         size = request.POST.get('size')
-        CartItem.objects.create(
-            product_id=product_id,
-            size=size,
-            user=request.user
-        )
+
+        # if that product is already in the user's cart, just raise its quantity
+        # by one
+        if CartItem.objects.filter(user=request.user, product_id=product_id, size=size).exists():
+            cart_item = CartItem.objects.get(user=request.user, product_id=product_id, size=size)
+            # ensure that the quantity does not exceed the product's inventory
+            if cart_item.quantity + 1 > cart_item.product.inventory:
+                messages.error(request, _("Not enough inventory"))
+                return render(request, 'partials/flash_message_partial.html')
+            else:
+                cart_item.quantity += 1
+                cart_item.save(update_fields=['quantity'])
+        else:
+            CartItem.objects.create(
+                product_id=product_id,
+                size=size,
+                user=request.user
+            )
         messages.success(request, _("Added to cart"))
         return render(request, 'partials/flash_message_partial.html')
 
@@ -159,7 +182,6 @@ class ToggleLikeView(View):
 
 class ToggleDislikeView(View):
     def post(self, request, *args, **kwargs):
-        
         if not self.request.user.is_authenticated:
             login_url = reverse('account:login')  + f'?next={self.request.path.replace("toggle_dislike/", "")}'
             response = HttpResponse(status=200)
@@ -184,6 +206,208 @@ class ToggleDislikeView(View):
                    'has_liked': product.likes.filter(user=request.user, like=True).exists(),
                    'has_disliked': product.likes.filter(user=request.user, dislike=True).exists(),
                    'product': product}
-        print("Toggle dislike view called")
         return render(request, 'partials/likes_partial.html', context=context)
-            
+
+class CartView(LoginRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        cart_items = CartItem.objects.filter(user=request.user).select_related('product')
+
+        cart_item_with_images = []
+        total_price = 0
+
+        for cart_item in cart_items:
+            # ensure each cart Item doesn't exceed the product's inventory
+            if cart_item.quantity > cart_item.product.inventory:
+                cart_item.quantity = cart_item.product.inventory
+                cart_item.save(update_fields=['quantity'])
+
+        cart_items = CartItem.objects.filter(user=request.user).select_related('product')
+
+        for cart_item in cart_items:
+
+            cart_item_with_images.append({
+                'cart_item': cart_item,
+                'image': cart_item.product.images.first().image.url
+            })
+            total_price += cart_item.total_price
+        return render(request, 'cart.html', {'cart_items': cart_item_with_images, 'total_price': total_price})
+    
+
+class IncreaseQuantityView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        cart_item_id = self.kwargs.get('cart_item_id')
+        cart_item = CartItem.objects.get(id=cart_item_id)
+        if cart_item.quantity + 1 > cart_item.product.inventory:
+            messages.error(request, _("Not enough inventory"))
+            return render(request, 'partials/flash_message_partial.html')
+        cart_item.quantity += 1
+        cart_item.save(update_fields=['quantity'])
+        cart_items = CartItem.objects.filter(user=request.user, product__inventory__gt=0)
+        
+        total_price = 0
+        for _cart_item in cart_items:
+            total_price += _cart_item.total_price
+
+        updated_cart_item = CartItem.objects.get(id=cart_item_id)
+        context = {'total_price': total_price, 'cart_item': updated_cart_item}
+        
+        return render(request, 'partials/checkout_partial.html', context=context)
+        
+
+class DecreaseQuantityView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        cart_item_id = self.kwargs.get('cart_item_id')
+        cart_item = CartItem.objects.get(id=cart_item_id)
+        if cart_item.quantity - 1 < 1:
+            messages.warning(request, _("Minimum quantity is 1"))
+            return render(request, 'partials/flash_message_partial.html')
+        
+        cart_item.quantity -= 1
+        cart_item.save(update_fields=['quantity'])
+        cart_items = CartItem.objects.filter(user=request.user, product__inventory__gt=0)
+        
+        total_price = 0
+        for _cart_item in cart_items:
+            total_price += _cart_item.total_price
+
+        updated_cart_item = CartItem.objects.get(id=cart_item_id)
+        context = {'total_price': total_price, 'cart_item': updated_cart_item}
+        
+        return render(request, 'partials/checkout_partial.html', context=context)
+
+
+class DeleteCartItemView(LoginRequiredMixin, View):
+    def delete(self, request, *args, **kwargs):
+        cart_item_id = self.kwargs.get('cart_item_id')
+        cart_item = CartItem.objects.get(id=cart_item_id)
+        cart_item.delete()
+        
+        total_price = 0
+        cart_items = CartItem.objects.filter(user=request.user)
+        for _cart_item in cart_items:
+            total_price += _cart_item.total_price
+        
+        return render(request, 'partials/total_price_partial.html', {'total_price': total_price, 'cart_item_id': cart_item_id})
+
+@login_required
+def shippingAddressView(request):
+    if request.method == 'POST':
+        address = request.POST.get('address')
+
+        user_cart_items = CartItem.objects.filter(user=request.user, product__inventory__gt=0)
+        total_price = 0
+
+        # check if this user has items in their cart
+        if user_cart_items:
+            for _cart_item in user_cart_items:
+                total_price += _cart_item.total_price
+            # create an order with this address
+            order = Order.objects.create(user=request.user, total_amount=total_price,
+                                         shipping_address=address)
+            order_number = order.order_number
+
+            #create order_items for each of the cart_items
+            for _cart_item in user_cart_items:
+                print(_cart_item.size)
+                order.order_items.create(product=_cart_item.product, quantity=_cart_item.quantity,
+                                      unit_price=_cart_item.product.unit_price, total_price=_cart_item.total_price,
+                                      size=_cart_item.size)
+
+            response = initiate_transaction({
+                "email": str(request.user.email),
+                "amount": str(total_price * 100),
+                "currency": "NGN",
+                "callback_url": "http://localhost:8000/store/callback_url",
+                "reference": str(order_number)
+            })
+
+            if response.status_code == 200:
+                return redirect(response.json()["data"]["authorization_url"])
+            else:
+                return HttpResponse("status code:", response.status_code)
+
+
+    if request.method == 'GET':
+        response = render(request, 'shipping_address_form.html')
+        response.headers['Cache-Control'] = 'no-store'
+        return response
+
+
+def update_inventory(cart_item):
+    product = cart_item.product
+    product.inventory -= cart_item.quantity
+    product.save(update_fields=['inventory'])
+    return cart_item
+
+def update_sizes(cart_item):
+    '''
+    update the product's size quantity
+    '''
+    if cart_item.size:
+        size_obj = Size.objects.get(product=cart_item.product, size__iexact=cart_item.size)
+        size_obj.quantity -= cart_item.quantity
+
+
+        if not size_obj.quantity:
+            size_obj.delete()
+        else:
+            new = size_obj.save(update_fields=['quantity'])
+
+    return cart_item
+
+@login_required
+def callback(request):
+    reference = request.GET.get('reference')
+    response = verify_transaction(reference)
+    total_price = reduce(lambda acc, cart_item: acc + cart_item.total_price,
+                         CartItem.objects.filter(user=request.user, product__inventory__gt=0), 0)
+
+    if (response.status_code == 200) and (total_price * 100 == response.json()['data']['amount']):
+
+        # reduce each product's inventory accordingly and the product's size quantity
+        list(map(update_inventory, CartItem.objects.filter(user=request.user)))
+        list(map(update_sizes, CartItem.objects.filter(user=request.user)))
+
+        # clear this user's cart
+        CartItem.objects.filter(user=request.user).delete()
+        # TODO send an email to the user and admin concerning the payment
+        # set the user's payment status to paid
+        Order.objects.filter(order_number=reference).update(payment_status='PAID')
+        messages.success(request, _("Payment successful!"))
+        return redirect(reverse('store:product-list'))
+    else:
+        # the payment was unsuccessful
+        Order.objects.filter(order_number=reference).delete()
+        messages.error(request, "Something went wrong")
+        return redirect(reverse('store:shipping-address'))
+
+@login_required
+def checkout(request):
+    cart_items = CartItem.objects.filter(user=request.user)
+    if cart_items.filter(product__inventory=0).exists():
+        messages.warning(request, _("Some products are out of stock!"))
+        return render(request, 'partials/flash_message_partial.html')
+    if cart_items.exists():
+        response = HttpResponse()
+        if request.htmx:
+            response.headers['HX-Redirect'] = reverse('store:shipping-address')
+            return response
+
+    return HttpResponse()
+
+
+class OrderListView(LoginRequiredMixin, ListView):
+    model = OrderItem
+    paginate_by = 5
+    context_object_name = 'order_items'
+
+
+    def get_template_names(self):
+        if self.request.htmx:
+            return ['partials/order_list_partial.html']  # Template for htmx requests
+        return ['orders_list.html']  # Template for non-htmx requests
+
+    def get_queryset(self):
+        orders = OrderItem.objects.filter(order__user=self.request.user, order__payment_status='PAID')
+
+        return orders

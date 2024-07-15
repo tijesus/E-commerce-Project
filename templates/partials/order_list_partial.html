@@ -1,0 +1,44 @@
+{% load static %}
+
+<section class="main__content order_item__list">
+
+{% for order_item in order_items %}
+    <article class="card" hx-trigger="click" hx-get="{% url 'store:product-detail' order_item.product.id %}" hx-target="#base" hx-push-url="true">
+{#        <figure class="card__image">#}
+            <img src="{{ order_item.product.images.first.image.url}}" alt="{{ order_item.product.name }}" />
+{#            <figcaption class="offscreen">{{ product.name }}/figcaption>#}
+{#        </figure>#}
+        <section class="card__text">
+            <p class="card__name">{{ order_item.product.name }}</p>
+            <p class="card__description">{{ order_item.product.description }}</p>
+            <p class="card__description">{{ order_item.status }}</p>
+            <p class="card__description">qty: {{ order_item.quantity }}</p>
+            <p class="card__description">size: {{ order_item.size }}</p>
+            <p class="card__price">UNIT PRICE: <span style="font-weight: bold">&#8358; </span>{{ order_item.unit_price }}</p>
+            <p class="card__price">TOTAL PRICE: <span style="font-weight: bold">&#8358; </span>{{ order_item.total_price }}</p>
+
+
+        </section>
+    </article>
+{% endfor %}
+
+{% if is_paginated %}
+<nav class="review__nav">
+     {% if page_obj.has_previous %}
+         <button type="button" hx-get="?page={{page_obj.previous_page_number}}"
+            hx-target=".order__item_list" hx-push-url="true">previous</button>
+     {% endif %}
+
+
+    {% if page_obj.has_next %}
+            <button type="button" hx-get="?page={{page_obj.next_page_number}}"
+            hx-target=".order__item_list" hx-push-url="true"
+            >next</button>
+{#                <a href="?page={{ products.next_page_number }}">next</a>#}
+{#                <a href="?page={{ products.paginator.num_pages }}">last &raquo;</a>#}
+    {% endif %}
+
+</nav>
+{% endif %}
+
+</section>

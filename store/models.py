@@ -13,11 +13,10 @@ import os
 def generate_order_number():
     # generate an order number comprising time
     # in the format '%Y%m%d%H%M%S' and a random 10 character string
-    # in the format '%Y%m%d%H%M%S'
     # separated by a colon
     time_portion = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
     random_string = str(uuid.uuid4())[:10]
-    return f'{time_portion}:{random_string}'
+    return f'{time_portion}_{random_string}'
 
 
 def validate_image_extension(value):
@@ -56,8 +55,7 @@ class Product(models.Model):
     genders = models.ManyToManyField('Gender', related_name='products')
     name = models.CharField(max_length=255)
     description = models.TextField()
-    inventory = models.PositiveIntegerField(default=1,
-                                            validators=[MinValueValidator(1)])
+    inventory = models.PositiveIntegerField(default=1)
     total_likes = models.PositiveIntegerField(default=0)
     total_dislikes = models.PositiveIntegerField(default=0)
     total_reviews = models.PositiveIntegerField(default=0)
@@ -88,6 +86,11 @@ class Product(models.Model):
         returns all the reviews of the product
         """
         return self.reviews.all()
+
+    @property
+    def in_stock(self):
+        return self.inventory > 0
+
 
     def __str__(self):
         return self.name
@@ -123,7 +126,7 @@ class Size(models.Model):
                                 on_delete=models.CASCADE,
                                 related_name='sizes')
     size = models.CharField(max_length=4)
-    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    quantity = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, unique=True)
@@ -136,14 +139,17 @@ class Size(models.Model):
         ensures that a products total quantity
         does not exceed the product's inventory
         """
-        inventory = self.product.inventory
-        total_quantity = self.product.sizes.aggregate(total=models.Sum('quantity'))['total'] or 0
-        if not self._state.adding:
-            total_quantity -= Size.objects.get(id=self.id).quantity
-        if total_quantity + self.quantity > inventory:
-            raise ValidationError(
-                message="The product's quantity exceeds the inventory",
-                code="quantity_exceeded")
+        # TODO fix the validation error bug
+
+        # if not getattr(self, '_skip_clean', False):
+        #     inventory = self.product.inventory
+        #     total_quantity = self.product.sizes.aggregate(total=models.Sum('quantity'))['total'] or 0
+        #     if not self._state.adding:
+        #         total_quantity -= Size.objects.get(id=self.id).quantity
+        #     if total_quantity + self.quantity > inventory:
+        #         raise ValidationError(
+        #             message="The product's quantity exceeds the inventory",
+        #             code="quantity_exceeded")
 
     def __str__(self):
         product = self.product
@@ -225,13 +231,7 @@ class Order(models.Model):
     """
     Order Model
     """
-    STATUS_CHOICES = [
-        ('PENDING', 'Pending'),
-        ('PROCESSING', 'Processing'),
-        ('SHIPPED', 'Shipped'),
-        ('DELIVERED', 'Delivered'),
-        ('CANCELLED', 'Cancelled'),
-    ]
+    
 
 
 
@@ -240,8 +240,8 @@ class Order(models.Model):
                                     default=generate_order_number,
                                     editable=False)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
-    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
-    total_amount = models.FloatField()
+    
+    total_amount = models.PositiveIntegerField()
     shipping_address = models.TextField(null=True, blank=True,
                                         help_text='If not provided, your address will be used')
     # billing_address = models.TextField()
@@ -262,10 +262,21 @@ class OrderItem(models.Model):
     """
     Order Item Model
     """
-    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='order_items')
-    quantity = models.PositiveIntegerField()
-    price = models.FloatField()
+    
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('PROCESSING', 'Processing'),
+        ('SHIPPED', 'Shipped'),
+        ('DELIVERED', 'Delivered'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')
+    order = models.ForeignKey(Order, related_name='order_items', on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='orders')
+    quantity = models.PositiveIntegerField(default=0)
+    unit_price = models.PositiveIntegerField(default=0)
+    total_price = models.PositiveIntegerField(default=0)
     size = models.CharField(null=True, blank=True, max_length=4)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -142,7 +142,12 @@ def _login(request: HttpRequest) -> HttpResponse:
                 return HttpResponse(render_to_string("account/verify_user.html", {}))
             else:
                 messages.error(request, "Something went wrong, try again later")
-                return render(request, 'account/login_form.html', {'form': form})
+                
+                response = render(request, 'account/login_form.html', {'form': form})
+                # prevent caching of forms so that new csrf tokens are generated
+                # when the user hits the back button to a login page
+                response.headers.setdefault('Cache-Control', 'no-store')
+                return response
 
         if user is not None:
             login(request, user)
@@ -155,7 +160,9 @@ def _login(request: HttpRequest) -> HttpResponse:
         else:
             messages.warning(request, f"Invalid email or password")
 
-    return render(request, 'account/login_form.html', {'form': form})
+    response =  render(request, 'account/login_form.html', {'form': form})
+    response.headers.setdefault('Cache-Control', 'no-store')
+    return response
 
 
 def _logout(request: HttpRequest) -> HttpResponse:

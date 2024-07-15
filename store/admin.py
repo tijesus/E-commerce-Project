@@ -16,7 +16,8 @@ class SizeInlineFormSet(forms.BaseInlineFormSet):
 
         # Example validation: Total quantity should not exceed product's inventory
         if total_quantity > product_inventory:
-            raise forms.ValidationError("Total quantity exceeds the product's inventory.")
+            raise forms.ValidationError("Total quantity exceeds the product's inventory ---")
+
 
 
 class ProductImageInline(admin.TabularInline):
